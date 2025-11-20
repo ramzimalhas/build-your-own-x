@@ -1,0 +1,227 @@
+{
+  "$schema": "./schemas/meta-template.schema.json",
+  "version": "1.0.0",
+  "name": "Multi-Tool Query Meta Template",
+  "description": "Unified query configuration for Linear, GitHub, Maestroverse, and other tooling",
+
+  "defaults": {
+    "output_format": "json",
+    "max_results": 100,
+    "include_metadata": true,
+    "cache_ttl": 300
+  },
+
+  "services": {
+    "linear": {
+      "enabled": true,
+      "base_url": "https://api.linear.app/graphql",
+      "auth": {
+        "type": "bearer",
+        "env_var": "LINEAR_API_KEY"
+      },
+      "default_workspace": "",
+      "schema_file": "./schemas/linear.schema.json"
+    },
+
+    "github": {
+      "enabled": true,
+      "base_url": "https://api.github.com",
+      "graphql_url": "https://api.github.com/graphql",
+      "auth": {
+        "type": "bearer",
+        "env_var": "GITHUB_TOKEN"
+      },
+      "default_owner": "",
+      "default_repo": "",
+      "schema_file": "./schemas/github.schema.json"
+    },
+
+    "maestroverse": {
+      "enabled": true,
+      "base_url": "https://api.maestroverse.io",
+      "auth": {
+        "type": "api_key",
+        "env_var": "MAESTROVERSE_API_KEY",
+        "header": "X-API-Key"
+      },
+      "default_project": "",
+      "schema_file": "./schemas/maestroverse.schema.json"
+    }
+  },
+
+  "query_templates": {
+    "all_open_items": {
+      "description": "Get all open items across all services",
+      "queries": [
+        {
+          "service": "linear",
+          "template": "open_issues"
+        },
+        {
+          "service": "github",
+          "template": "open_issues"
+        },
+        {
+          "service": "github",
+          "template": "open_prs"
+        },
+        {
+          "service": "maestroverse",
+          "template": "active_tasks"
+        }
+      ]
+    },
+
+    "my_assignments": {
+      "description": "Get all items assigned to me",
+      "queries": [
+        {
+          "service": "linear",
+          "template": "my_issues"
+        },
+        {
+          "service": "github",
+          "template": "my_issues"
+        },
+        {
+          "service": "github",
+          "template": "my_prs"
+        },
+        {
+          "service": "maestroverse",
+          "template": "my_tasks"
+        }
+      ]
+    },
+
+    "recent_activity": {
+      "description": "Get recent activity across all services",
+      "params": {
+        "days": 7
+      },
+      "queries": [
+        {
+          "service": "linear",
+          "template": "recent_updates"
+        },
+        {
+          "service": "github",
+          "template": "recent_commits"
+        },
+        {
+          "service": "github",
+          "template": "recent_prs"
+        },
+        {
+          "service": "maestroverse",
+          "template": "recent_activity"
+        }
+      ]
+    },
+
+    "search": {
+      "description": "Search across all services",
+      "params": {
+        "query": ""
+      },
+      "queries": [
+        {
+          "service": "linear",
+          "template": "search"
+        },
+        {
+          "service": "github",
+          "template": "search_code"
+        },
+        {
+          "service": "github",
+          "template": "search_issues"
+        },
+        {
+          "service": "maestroverse",
+          "template": "search"
+        }
+      ]
+    },
+
+    "sprint_status": {
+      "description": "Get current sprint/cycle status",
+      "queries": [
+        {
+          "service": "linear",
+          "template": "current_cycle"
+        },
+        {
+          "service": "github",
+          "template": "current_milestone"
+        },
+        {
+          "service": "maestroverse",
+          "template": "current_sprint"
+        }
+      ]
+    },
+
+    "blocked_items": {
+      "description": "Get all blocked items",
+      "queries": [
+        {
+          "service": "linear",
+          "template": "blocked_issues"
+        },
+        {
+          "service": "github",
+          "template": "blocked_issues"
+        },
+        {
+          "service": "maestroverse",
+          "template": "blocked_tasks"
+        }
+      ]
+    }
+  },
+
+  "aggregation": {
+    "merge_strategy": "unified",
+    "sort_by": "updated_at",
+    "sort_order": "desc",
+    "dedup_by": ["external_url", "title"]
+  },
+
+  "notifications": {
+    "enabled": false,
+    "channels": ["slack", "email"],
+    "triggers": {
+      "new_assignment": true,
+      "mention": true,
+      "status_change": true
+    }
+  },
+
+  "custom_fields": {
+    "priority_mapping": {
+      "linear": {
+        "0": "none",
+        "1": "urgent",
+        "2": "high",
+        "3": "medium",
+        "4": "low"
+      },
+      "github": {
+        "labels": ["priority:critical", "priority:high", "priority:medium", "priority:low"]
+      },
+      "maestroverse": {
+        "P0": "critical",
+        "P1": "high",
+        "P2": "medium",
+        "P3": "low"
+      }
+    },
+    "status_mapping": {
+      "open": ["Open", "Todo", "Backlog", "In Progress", "open", "active"],
+      "in_progress": ["In Progress", "In Review", "in_progress", "working"],
+      "done": ["Done", "Closed", "Completed", "closed", "merged", "complete"],
+      "blocked": ["Blocked", "On Hold", "blocked", "waiting"]
+    }
+  }
+}

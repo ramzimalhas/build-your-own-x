@@ -1,0 +1,235 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Maestroverse Query Schema",
+  "description": "Query templates and configurations for Maestroverse API",
+
+  "connection": {
+    "type": "rest",
+    "base_url": "https://api.maestroverse.io/v1",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-API-Key": "${MAESTROVERSE_API_KEY}",
+      "X-Workspace-ID": "${WORKSPACE_ID}"
+    }
+  },
+
+  "queries": {
+    "active_tasks": {
+      "description": "Get all active tasks",
+      "method": "GET",
+      "endpoint": "/tasks",
+      "params": {
+        "status": "active",
+        "limit": 50,
+        "sort": "-updated_at"
+      },
+      "response_path": "data.tasks"
+    },
+
+    "my_tasks": {
+      "description": "Get tasks assigned to me",
+      "method": "GET",
+      "endpoint": "/tasks",
+      "params": {
+        "assignee": "me",
+        "status": "active",
+        "limit": 50,
+        "sort": "-updated_at"
+      },
+      "response_path": "data.tasks"
+    },
+
+    "recent_activity": {
+      "description": "Get recent activity",
+      "method": "GET",
+      "endpoint": "/activity",
+      "params": {
+        "since": "${DAYS_AGO}",
+        "limit": 100,
+        "sort": "-created_at"
+      },
+      "response_path": "data.activities"
+    },
+
+    "search": {
+      "description": "Search tasks and projects",
+      "method": "GET",
+      "endpoint": "/search",
+      "params": {
+        "q": "${SEARCH_QUERY}",
+        "type": "all",
+        "limit": 50
+      },
+      "response_path": "data.results"
+    },
+
+    "current_sprint": {
+      "description": "Get current sprint",
+      "method": "GET",
+      "endpoint": "/sprints/current",
+      "params": {},
+      "response_path": "data.sprint"
+    },
+
+    "blocked_tasks": {
+      "description": "Get blocked tasks",
+      "method": "GET",
+      "endpoint": "/tasks",
+      "params": {
+        "status": "blocked",
+        "limit": 50,
+        "sort": "-updated_at"
+      },
+      "response_path": "data.tasks"
+    },
+
+    "projects": {
+      "description": "Get all projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "params": {
+        "status": "active",
+        "limit": 100
+      },
+      "response_path": "data.projects"
+    },
+
+    "workflows": {
+      "description": "Get all workflows",
+      "method": "GET",
+      "endpoint": "/workflows",
+      "params": {
+        "status": "active",
+        "limit": 50
+      },
+      "response_path": "data.workflows"
+    },
+
+    "automations": {
+      "description": "Get automation rules",
+      "method": "GET",
+      "endpoint": "/automations",
+      "params": {
+        "enabled": true
+      },
+      "response_path": "data.automations"
+    },
+
+    "metrics": {
+      "description": "Get project metrics",
+      "method": "GET",
+      "endpoint": "/metrics",
+      "params": {
+        "project_id": "${PROJECT_ID}",
+        "period": "week",
+        "metrics": ["velocity", "burndown", "throughput"]
+      },
+      "response_path": "data.metrics"
+    },
+
+    "create_task": {
+      "description": "Create a new task",
+      "method": "POST",
+      "endpoint": "/tasks",
+      "body": {
+        "title": "${TITLE}",
+        "description": "${DESCRIPTION}",
+        "project_id": "${PROJECT_ID}",
+        "assignee_id": "${ASSIGNEE_ID}",
+        "priority": "${PRIORITY}",
+        "labels": "${LABELS}",
+        "due_date": "${DUE_DATE}"
+      },
+      "response_path": "data.task"
+    },
+
+    "update_task": {
+      "description": "Update an existing task",
+      "method": "PATCH",
+      "endpoint": "/tasks/${TASK_ID}",
+      "body": {
+        "status": "${STATUS}",
+        "assignee_id": "${ASSIGNEE_ID}",
+        "priority": "${PRIORITY}"
+      },
+      "response_path": "data.task"
+    },
+
+    "add_comment": {
+      "description": "Add comment to task",
+      "method": "POST",
+      "endpoint": "/tasks/${TASK_ID}/comments",
+      "body": {
+        "body": "${COMMENT}",
+        "mentions": "${MENTIONS}"
+      },
+      "response_path": "data.comment"
+    },
+
+    "ai_suggestions": {
+      "description": "Get AI-powered task suggestions",
+      "method": "GET",
+      "endpoint": "/ai/suggestions",
+      "params": {
+        "context": "${CONTEXT}",
+        "type": "task_breakdown"
+      },
+      "response_path": "data.suggestions"
+    },
+
+    "orchestrations": {
+      "description": "Get orchestration pipelines",
+      "method": "GET",
+      "endpoint": "/orchestrations",
+      "params": {
+        "status": "active"
+      },
+      "response_path": "data.orchestrations"
+    }
+  },
+
+  "field_mappings": {
+    "id": "id",
+    "external_id": "external_id",
+    "title": "title",
+    "description": "description",
+    "status": "status",
+    "priority": "priority",
+    "assignee": "assignee.name",
+    "created_at": "created_at",
+    "updated_at": "updated_at",
+    "due_date": "due_date",
+    "labels": "labels",
+    "project": "project.name",
+    "sprint": "sprint.name",
+    "url": "web_url"
+  },
+
+  "webhooks": {
+    "events": [
+      "task.created",
+      "task.updated",
+      "task.completed",
+      "sprint.started",
+      "sprint.completed",
+      "comment.added"
+    ],
+    "endpoint": "${WEBHOOK_URL}",
+    "secret": "${WEBHOOK_SECRET}"
+  },
+
+  "integrations": {
+    "supported": [
+      "slack",
+      "github",
+      "linear",
+      "jira",
+      "notion",
+      "figma"
+    ],
+    "sync_config": {
+      "bidirectional": true,
+      "conflict_resolution": "latest_wins"
+    }
+  }
+}
