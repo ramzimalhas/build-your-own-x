@@ -1,0 +1,232 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tools Manifest",
+  "description": "Registry of all integrated tools and their capabilities",
+  "version": "1.0.0",
+
+  "tools": {
+    "linear": {
+      "name": "Linear",
+      "type": "project_management",
+      "description": "Modern issue tracking and project management",
+      "website": "https://linear.app",
+      "api_docs": "https://developers.linear.app/docs",
+      "capabilities": [
+        "issues",
+        "projects",
+        "cycles",
+        "teams",
+        "roadmaps",
+        "workflows"
+      ],
+      "auth_methods": ["api_key", "oauth"],
+      "rate_limits": {
+        "requests_per_minute": 1500,
+        "complexity_per_minute": 250000
+      },
+      "features": {
+        "graphql": true,
+        "rest": false,
+        "webhooks": true,
+        "real_time": true
+      }
+    },
+
+    "github": {
+      "name": "GitHub",
+      "type": "version_control",
+      "description": "Code hosting, issues, PRs, and CI/CD",
+      "website": "https://github.com",
+      "api_docs": "https://docs.github.com/en/rest",
+      "capabilities": [
+        "repositories",
+        "issues",
+        "pull_requests",
+        "commits",
+        "actions",
+        "releases",
+        "discussions",
+        "projects"
+      ],
+      "auth_methods": ["personal_access_token", "github_app", "oauth"],
+      "rate_limits": {
+        "core": 5000,
+        "search": 30,
+        "graphql": 5000
+      },
+      "features": {
+        "graphql": true,
+        "rest": true,
+        "webhooks": true,
+        "real_time": false
+      }
+    },
+
+    "maestroverse": {
+      "name": "Maestroverse",
+      "type": "orchestration",
+      "description": "AI-powered task orchestration and workflow automation",
+      "website": "https://maestroverse.io",
+      "api_docs": "https://docs.maestroverse.io/api",
+      "capabilities": [
+        "tasks",
+        "projects",
+        "sprints",
+        "workflows",
+        "automations",
+        "orchestrations",
+        "ai_suggestions",
+        "metrics"
+      ],
+      "auth_methods": ["api_key", "oauth"],
+      "rate_limits": {
+        "requests_per_minute": 1000
+      },
+      "features": {
+        "graphql": false,
+        "rest": true,
+        "webhooks": true,
+        "real_time": true
+      }
+    }
+  },
+
+  "custom_tools": {
+    "_template": {
+      "name": "Tool Name",
+      "type": "category",
+      "description": "Description",
+      "base_url": "https://api.example.com",
+      "auth": {
+        "type": "bearer|api_key|basic|oauth",
+        "env_var": "TOOL_API_KEY"
+      },
+      "schema_file": "./schemas/custom.schema.json"
+    }
+  },
+
+  "tool_categories": {
+    "project_management": {
+      "description": "Task tracking and project organization",
+      "common_queries": [
+        "open_issues",
+        "my_assignments",
+        "blocked_items",
+        "sprint_status"
+      ]
+    },
+    "version_control": {
+      "description": "Code hosting and collaboration",
+      "common_queries": [
+        "open_prs",
+        "recent_commits",
+        "search_code",
+        "repo_info"
+      ]
+    },
+    "orchestration": {
+      "description": "Workflow automation and AI assistance",
+      "common_queries": [
+        "active_tasks",
+        "workflows",
+        "automations",
+        "ai_suggestions"
+      ]
+    },
+    "communication": {
+      "description": "Team messaging and notifications",
+      "tools": ["slack", "discord", "teams"]
+    },
+    "documentation": {
+      "description": "Knowledge bases and wikis",
+      "tools": ["notion", "confluence", "gitbook"]
+    },
+    "design": {
+      "description": "Design tools and assets",
+      "tools": ["figma", "sketch", "adobe_xd"]
+    },
+    "monitoring": {
+      "description": "Observability and alerting",
+      "tools": ["datadog", "grafana", "pagerduty"]
+    }
+  },
+
+  "unified_operations": {
+    "query": {
+      "description": "Run a query across specified tools",
+      "params": {
+        "template": "Query template name from query-config.json",
+        "tools": "Array of tools to query (default: all enabled)",
+        "params": "Query-specific parameters"
+      }
+    },
+    "sync": {
+      "description": "Sync items between tools",
+      "params": {
+        "source": "Source tool",
+        "target": "Target tool",
+        "mapping": "Field mapping configuration"
+      }
+    },
+    "create": {
+      "description": "Create item in specified tool",
+      "params": {
+        "tool": "Target tool",
+        "type": "Item type (issue, task, etc.)",
+        "data": "Item data"
+      }
+    },
+    "update": {
+      "description": "Update item in specified tool",
+      "params": {
+        "tool": "Target tool",
+        "id": "Item ID",
+        "data": "Updated data"
+      }
+    },
+    "link": {
+      "description": "Link related items across tools",
+      "params": {
+        "items": "Array of {tool, id} objects to link"
+      }
+    }
+  },
+
+  "environment_variables": {
+    "required": {
+      "LINEAR_API_KEY": "Linear API key",
+      "GITHUB_TOKEN": "GitHub personal access token or app token",
+      "MAESTROVERSE_API_KEY": "Maestroverse API key"
+    },
+    "optional": {
+      "DEFAULT_OWNER": "Default GitHub owner/org",
+      "DEFAULT_REPO": "Default GitHub repository",
+      "WORKSPACE_ID": "Maestroverse workspace ID",
+      "WEBHOOK_URL": "URL for webhook callbacks",
+      "WEBHOOK_SECRET": "Secret for webhook signatures"
+    }
+  },
+
+  "output_formats": {
+    "json": {
+      "description": "JSON format",
+      "extension": ".json"
+    },
+    "yaml": {
+      "description": "YAML format",
+      "extension": ".yaml"
+    },
+    "csv": {
+      "description": "CSV format for spreadsheets",
+      "extension": ".csv"
+    },
+    "markdown": {
+      "description": "Markdown table format",
+      "extension": ".md"
+    },
+    "html": {
+      "description": "HTML table format",
+      "extension": ".html"
+    }
+  }
+}

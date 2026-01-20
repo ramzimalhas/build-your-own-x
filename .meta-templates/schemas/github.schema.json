@@ -1,0 +1,225 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GitHub Query Schema",
+  "description": "Query templates and configurations for GitHub API (REST and GraphQL)",
+
+  "connection": {
+    "rest": {
+      "base_url": "https://api.github.com",
+      "headers": {
+        "Accept": "application/vnd.github+json",
+        "Authorization": "Bearer ${GITHUB_TOKEN}",
+        "X-GitHub-Api-Version": "2022-11-28"
+      }
+    },
+    "graphql": {
+      "endpoint": "https://api.github.com/graphql",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      }
+    }
+  },
+
+  "queries": {
+    "open_issues": {
+      "description": "Get all open issues",
+      "type": "graphql",
+      "query": "query OpenIssues($owner: String!, $repo: String!, $first: Int) { repository(owner: $owner, name: $repo) { issues(first: $first, states: [OPEN], orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { id number title body state author { login } assignees(first: 5) { nodes { login } } labels(first: 10) { nodes { name color } } milestone { title } createdAt updatedAt } pageInfo { hasNextPage endCursor } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}",
+        "first": 50
+      },
+      "response_path": "data.repository.issues.nodes"
+    },
+
+    "open_prs": {
+      "description": "Get all open pull requests",
+      "type": "graphql",
+      "query": "query OpenPRs($owner: String!, $repo: String!, $first: Int) { repository(owner: $owner, name: $repo) { pullRequests(first: $first, states: [OPEN], orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { id number title body state author { login } assignees(first: 5) { nodes { login } } labels(first: 10) { nodes { name color } } reviewDecision isDraft mergeable createdAt updatedAt } pageInfo { hasNextPage endCursor } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}",
+        "first": 50
+      },
+      "response_path": "data.repository.pullRequests.nodes"
+    },
+
+    "my_issues": {
+      "description": "Get issues assigned to me",
+      "type": "graphql",
+      "query": "query MyIssues($first: Int) { viewer { issues(first: $first, states: [OPEN], orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { id number title body state repository { nameWithOwner } labels(first: 10) { nodes { name color } } milestone { title } createdAt updatedAt } } } }",
+      "variables": {
+        "first": 50
+      },
+      "response_path": "data.viewer.issues.nodes"
+    },
+
+    "my_prs": {
+      "description": "Get my open pull requests",
+      "type": "graphql",
+      "query": "query MyPRs($first: Int) { viewer { pullRequests(first: $first, states: [OPEN], orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { id number title body state repository { nameWithOwner } reviewDecision isDraft mergeable createdAt updatedAt } } } }",
+      "variables": {
+        "first": 50
+      },
+      "response_path": "data.viewer.pullRequests.nodes"
+    },
+
+    "recent_commits": {
+      "description": "Get recent commits",
+      "type": "graphql",
+      "query": "query RecentCommits($owner: String!, $repo: String!, $first: Int) { repository(owner: $owner, name: $repo) { defaultBranchRef { target { ... on Commit { history(first: $first) { nodes { oid messageHeadline message author { name email date } additions deletions } } } } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}",
+        "first": 50
+      },
+      "response_path": "data.repository.defaultBranchRef.target.history.nodes"
+    },
+
+    "recent_prs": {
+      "description": "Get recently updated pull requests",
+      "type": "graphql",
+      "query": "query RecentPRs($owner: String!, $repo: String!, $first: Int) { repository(owner: $owner, name: $repo) { pullRequests(first: $first, orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { id number title state author { login } mergedAt closedAt createdAt updatedAt } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}",
+        "first": 50
+      },
+      "response_path": "data.repository.pullRequests.nodes"
+    },
+
+    "search_code": {
+      "description": "Search code in repository",
+      "type": "rest",
+      "method": "GET",
+      "endpoint": "/search/code",
+      "params": {
+        "q": "${SEARCH_QUERY} repo:${OWNER}/${REPO}",
+        "per_page": 50
+      },
+      "response_path": "items"
+    },
+
+    "search_issues": {
+      "description": "Search issues and PRs",
+      "type": "rest",
+      "method": "GET",
+      "endpoint": "/search/issues",
+      "params": {
+        "q": "${SEARCH_QUERY} repo:${OWNER}/${REPO}",
+        "per_page": 50
+      },
+      "response_path": "items"
+    },
+
+    "current_milestone": {
+      "description": "Get current open milestones",
+      "type": "graphql",
+      "query": "query CurrentMilestone($owner: String!, $repo: String!, $first: Int) { repository(owner: $owner, name: $repo) { milestones(first: $first, states: [OPEN], orderBy: {field: DUE_DATE, direction: ASC}) { nodes { id title description dueOn progressPercentage issues { totalCount } closedIssues: issues(states: [CLOSED]) { totalCount } } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}",
+        "first": 5
+      },
+      "response_path": "data.repository.milestones.nodes"
+    },
+
+    "blocked_issues": {
+      "description": "Get blocked issues (by label)",
+      "type": "graphql",
+      "query": "query BlockedIssues($owner: String!, $repo: String!, $first: Int) { repository(owner: $owner, name: $repo) { issues(first: $first, states: [OPEN], labels: [\"blocked\", \"on-hold\", \"waiting\"]) { nodes { id number title body state author { login } assignees(first: 5) { nodes { login } } labels(first: 10) { nodes { name color } } createdAt updatedAt } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}",
+        "first": 50
+      },
+      "response_path": "data.repository.issues.nodes"
+    },
+
+    "repo_info": {
+      "description": "Get repository information",
+      "type": "graphql",
+      "query": "query RepoInfo($owner: String!, $repo: String!) { repository(owner: $owner, name: $repo) { id name description url stargazerCount forkCount issues { totalCount } pullRequests { totalCount } defaultBranchRef { name } languages(first: 10) { nodes { name color } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}"
+      },
+      "response_path": "data.repository"
+    },
+
+    "notifications": {
+      "description": "Get notifications",
+      "type": "rest",
+      "method": "GET",
+      "endpoint": "/notifications",
+      "params": {
+        "all": false,
+        "participating": true,
+        "per_page": 50
+      },
+      "response_path": "."
+    },
+
+    "create_issue": {
+      "description": "Create a new issue",
+      "type": "rest",
+      "method": "POST",
+      "endpoint": "/repos/${OWNER}/${REPO}/issues",
+      "body": {
+        "title": "${TITLE}",
+        "body": "${BODY}",
+        "assignees": "${ASSIGNEES}",
+        "labels": "${LABELS}",
+        "milestone": "${MILESTONE}"
+      },
+      "response_path": "."
+    },
+
+    "create_pr": {
+      "description": "Create a pull request",
+      "type": "rest",
+      "method": "POST",
+      "endpoint": "/repos/${OWNER}/${REPO}/pulls",
+      "body": {
+        "title": "${TITLE}",
+        "body": "${BODY}",
+        "head": "${HEAD}",
+        "base": "${BASE}",
+        "draft": false
+      },
+      "response_path": "."
+    }
+  },
+
+  "field_mappings": {
+    "id": "id",
+    "external_id": "number",
+    "title": "title",
+    "description": "body",
+    "status": "state",
+    "author": "author.login",
+    "assignee": "assignees.nodes[0].login",
+    "created_at": "createdAt",
+    "updated_at": "updatedAt",
+    "labels": "labels.nodes[].name",
+    "milestone": "milestone.title",
+    "repository": "repository.nameWithOwner",
+    "url": "url"
+  },
+
+  "webhooks": {
+    "events": [
+      "push",
+      "pull_request",
+      "issues",
+      "issue_comment",
+      "pull_request_review",
+      "release"
+    ],
+    "endpoint": "${WEBHOOK_URL}",
+    "secret": "${WEBHOOK_SECRET}",
+    "content_type": "json"
+  }
+}

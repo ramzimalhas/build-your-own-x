@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Linear Query Schema",
+  "description": "Query templates and configurations for Linear API",
+
+  "connection": {
+    "type": "graphql",
+    "endpoint": "https://api.linear.app/graphql",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${LINEAR_API_KEY}"
+    }
+  },
+
+  "queries": {
+    "open_issues": {
+      "description": "Get all open issues",
+      "query": "query OpenIssues($first: Int, $filter: IssueFilter) { issues(first: $first, filter: $filter) { nodes { id identifier title description state { name } priority assignee { name email } createdAt updatedAt dueDate labels { nodes { name color } } project { name } team { name } } pageInfo { hasNextPage endCursor } } }",
+      "variables": {
+        "first": 50,
+        "filter": {
+          "state": {
+            "type": {
+              "nin": ["completed", "canceled"]
+            }
+          }
+        }
+      },
+      "response_path": "data.issues.nodes"
+    },
+
+    "my_issues": {
+      "description": "Get issues assigned to me",
+      "query": "query MyIssues($first: Int) { viewer { assignedIssues(first: $first) { nodes { id identifier title description state { name } priority createdAt updatedAt dueDate labels { nodes { name color } } project { name } team { name } } } } }",
+      "variables": {
+        "first": 50
+      },
+      "response_path": "data.viewer.assignedIssues.nodes"
+    },
+
+    "recent_updates": {
+      "description": "Get recently updated issues",
+      "query": "query RecentUpdates($first: Int, $filter: IssueFilter) { issues(first: $first, filter: $filter, orderBy: updatedAt) { nodes { id identifier title state { name } priority assignee { name } updatedAt history(first: 5) { nodes { createdAt actor { name } fromState { name } toState { name } } } } } }",
+      "variables": {
+        "first": 50,
+        "filter": {
+          "updatedAt": {
+            "gte": "${DAYS_AGO}"
+          }
+        }
+      },
+      "response_path": "data.issues.nodes"
+    },
+
+    "search": {
+      "description": "Search issues",
+      "query": "query SearchIssues($term: String!, $first: Int) { issueSearch(term: $term, first: $first) { nodes { id identifier title description state { name } priority assignee { name } createdAt updatedAt } } }",
+      "variables": {
+        "term": "${SEARCH_QUERY}",
+        "first": 50
+      },
+      "response_path": "data.issueSearch.nodes"
+    },
+
+    "current_cycle": {
+      "description": "Get current cycle/sprint",
+      "query": "query CurrentCycle { cycles(filter: { isActive: { eq: true } }) { nodes { id name startsAt endsAt progress issues { nodes { id identifier title state { name } assignee { name } } } } } }",
+      "variables": {},
+      "response_path": "data.cycles.nodes"
+    },
+
+    "blocked_issues": {
+      "description": "Get blocked issues",
+      "query": "query BlockedIssues($first: Int) { issues(first: $first, filter: { state: { name: { in: [\"Blocked\", \"On Hold\"] } } }) { nodes { id identifier title description state { name } priority assignee { name } createdAt updatedAt blockedBy { nodes { id identifier title } } } } }",
+      "variables": {
+        "first": 50
+      },
+      "response_path": "data.issues.nodes"
+    },
+
+    "teams": {
+      "description": "Get all teams",
+      "query": "query Teams { teams { nodes { id name key description } } }",
+      "variables": {},
+      "response_path": "data.teams.nodes"
+    },
+
+    "projects": {
+      "description": "Get all projects",
+      "query": "query Projects($first: Int) { projects(first: $first) { nodes { id name description state startDate targetDate lead { name } teams { nodes { name } } } } }",
+      "variables": {
+        "first": 50
+      },
+      "response_path": "data.projects.nodes"
+    },
+
+    "create_issue": {
+      "description": "Create a new issue",
+      "mutation": "mutation CreateIssue($input: IssueCreateInput!) { issueCreate(input: $input) { success issue { id identifier title url } } }",
+      "variables": {
+        "input": {
+          "title": "${TITLE}",
+          "description": "${DESCRIPTION}",
+          "teamId": "${TEAM_ID}",
+          "priority": "${PRIORITY}",
+          "assigneeId": "${ASSIGNEE_ID}"
+        }
+      },
+      "response_path": "data.issueCreate"
+    },
+
+    "update_issue": {
+      "description": "Update an existing issue",
+      "mutation": "mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) { issueUpdate(id: $id, input: $input) { success issue { id identifier title state { name } } } }",
+      "variables": {
+        "id": "${ISSUE_ID}",
+        "input": {}
+      },
+      "response_path": "data.issueUpdate"
+    }
+  },
+
+  "field_mappings": {
+    "id": "id",
+    "external_id": "identifier",
+    "title": "title",
+    "description": "description",
+    "status": "state.name",
+    "priority": "priority",
+    "assignee": "assignee.name",
+    "created_at": "createdAt",
+    "updated_at": "updatedAt",
+    "due_date": "dueDate",
+    "labels": "labels.nodes[].name",
+    "project": "project.name",
+    "team": "team.name",
+    "url": "url"
+  },
+
+  "webhooks": {
+    "events": [
+      "Issue",
+      "Comment",
+      "IssueLabel",
+      "Project",
+      "Cycle"
+    ],
+    "endpoint": "${WEBHOOK_URL}",
+    "secret": "${WEBHOOK_SECRET}"
+  }
+}
