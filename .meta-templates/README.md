@@ -1,6 +1,6 @@
 # Meta Template Query Tools
 
-A unified query configuration for querying across Linear, GitHub, Maestroverse, and other development tools.
+A unified query configuration for querying across Linear, GitHub, Maestroverse, and other development tools, with comprehensive Bill of Materials (BOM) tracking.
 
 ## Overview
 
@@ -9,6 +9,25 @@ This meta template provides a standardized way to:
 - Aggregate results from different tools
 - Map fields between services
 - Define reusable query templates
+- **Track 9 types of Bill of Materials (BOM) across your entire tooling ecosystem**
+
+### Bill of Materials (BOM) Support
+
+Track inventory across 9 BOM types:
+
+| BOM | Purpose | Missing Data Tracked |
+|-----|---------|---------------------|
+| SBOM 📦 | Software dependencies | Framework versions, licenses, CVEs |
+| ABOM 📱 | App/service catalog | Xcode projects using frameworks |
+| PBOM 🧍 | Developer behaviors | Usage patterns, adoption rates |
+| HBOM 🏠 | Device inventory | Device support by framework |
+| IBOM 🔐 | Identity/auth | Permission requirements, TCC mappings |
+| DBOM 🗄️ | Dataset lineage | CSV → DuckDB provenance |
+| CBOM 📋 | Compliance | UAE jurisdiction, GDPR, privacy scores |
+| OBOM 📡 | Observability | Cell execution times, token costs |
+| WBOM 🔄 | Workflows | Semantic engine → DuckDB pipelines |
+
+See [BOM-EXAMPLES.md](./BOM-EXAMPLES.md) for detailed usage examples.
 
 ## Structure
 
@@ -16,12 +35,15 @@ This meta template provides a standardized way to:
 .meta-templates/
 ├── query-config.json         # Main configuration file
 ├── tools-manifest.json       # Registry of all tools
+├── bom-taxonomy.json         # BOM type definitions
 ├── query-runner.js           # Example runner script
 ├── README.md                 # This file
+├── BOM-EXAMPLES.md           # Comprehensive BOM usage examples
 └── schemas/
     ├── linear.schema.json    # Linear API queries
     ├── github.schema.json    # GitHub API queries
-    └── maestroverse.schema.json  # Maestroverse API queries
+    ├── maestroverse.schema.json  # Maestroverse API queries
+    └── bom-queries.json      # BOM-specific queries for all services
 ```
 
 ## Quick Start
@@ -73,6 +95,23 @@ node query-runner.js all_open_items
 | `search` | Search across all services |
 | `sprint_status` | Get current sprint/cycle status |
 | `blocked_items` | Get all blocked items |
+
+### BOM Query Templates
+
+| Template | BOM Type | Description |
+|----------|----------|-------------|
+| `sbom_audit` | SBOM 📦 | Audit software dependencies, licenses, CVEs |
+| `abom_catalog` | ABOM 📱 | Get app/service catalog with frameworks |
+| `pbom_insights` | PBOM 🧍 | Developer behavior and adoption patterns |
+| `hbom_inventory` | HBOM 🏠 | Device inventory and compatibility |
+| `ibom_permissions` | IBOM 🔐 | Permission audit and TCC mappings |
+| `dbom_lineage` | DBOM 🗄️ | Dataset lineage and provenance |
+| `cbom_compliance` | CBOM 📋 | Compliance status (GDPR, UAE, etc.) |
+| `obom_metrics` | OBOM 📡 | Performance metrics and costs |
+| `wbom_pipelines` | WBOM 🔄 | Workflow and pipeline inventory |
+| `bom_complete_inventory` | ALL | Complete inventory across all 9 BOMs |
+
+See [BOM-EXAMPLES.md](./BOM-EXAMPLES.md) for detailed examples of each BOM type.
 
 ### Using Templates
 

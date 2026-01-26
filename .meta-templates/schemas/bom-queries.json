@@ -1,0 +1,444 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BOM Query Extensions",
+  "description": "BOM-specific queries for all services",
+  "version": "1.0.0",
+
+  "github_bom_queries": {
+    "dependency_graph": {
+      "description": "SBOM: Get dependency graph for repository",
+      "bom_type": "sbom",
+      "type": "graphql",
+      "query": "query DependencyGraph($owner: String!, $repo: String!) { repository(owner: $owner, name: $repo) { dependencyGraphManifests(first: 10) { nodes { filename dependenciesCount exceedsMaxSize dependencies(first: 100) { nodes { packageName packageManager requirements repository { nameWithOwner } hasDependencies } } } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}"
+      },
+      "response_path": "data.repository.dependencyGraphManifests.nodes"
+    },
+
+    "security_vulnerabilities": {
+      "description": "SBOM: Get security vulnerabilities (Dependabot alerts)",
+      "bom_type": "sbom",
+      "type": "graphql",
+      "query": "query SecurityVulnerabilities($owner: String!, $repo: String!, $first: Int) { repository(owner: $owner, name: $repo) { vulnerabilityAlerts(first: $first) { nodes { id state securityVulnerability { package { name ecosystem } severity advisory { summary description publishedAt cvss { score vectorString } references { url } } } vulnerableVersionRange } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}",
+        "first": 100
+      },
+      "response_path": "data.repository.vulnerabilityAlerts.nodes"
+    },
+
+    "repository_catalog": {
+      "description": "ABOM: Get repository catalog with topics and languages",
+      "bom_type": "abom",
+      "type": "graphql",
+      "query": "query RepositoryCatalog($org: String!, $first: Int) { organization(login: $org) { repositories(first: $first) { nodes { id name description url isPrivate primaryLanguage { name } languages(first: 10) { nodes { name } } repositoryTopics(first: 10) { nodes { topic { name } } } deployments(first: 5) { totalCount nodes { environment state } } } } } }",
+      "variables": {
+        "org": "${OWNER}",
+        "first": 100
+      },
+      "response_path": "data.organization.repositories.nodes"
+    },
+
+    "contributor_stats": {
+      "description": "PBOM: Get contributor statistics",
+      "bom_type": "pbom",
+      "type": "graphql",
+      "query": "query ContributorStats($owner: String!, $repo: String!) { repository(owner: $owner, name: $repo) { defaultBranchRef { target { ... on Commit { history(first: 100) { nodes { author { name email user { login bio company location twitterUsername } } committedDate } } } } } mentionableUsers(first: 100) { nodes { login name bio company location contributions { totalCount } } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}"
+      },
+      "response_path": "data.repository"
+    },
+
+    "test_matrix": {
+      "description": "HBOM: Get CI/CD test matrix configuration",
+      "bom_type": "hbom",
+      "type": "rest",
+      "method": "GET",
+      "endpoint": "/repos/${OWNER}/${REPO}/actions/workflows",
+      "response_path": "workflows"
+    },
+
+    "entitlements_scan": {
+      "description": "IBOM: Scan for entitlements and permissions in code",
+      "bom_type": "ibom",
+      "type": "rest",
+      "method": "GET",
+      "endpoint": "/search/code",
+      "params": {
+        "q": "filename:entitlements repo:${OWNER}/${REPO} OR filename:Info.plist repo:${OWNER}/${REPO} OR NSCameraUsageDescription repo:${OWNER}/${REPO}",
+        "per_page": 100
+      },
+      "response_path": "items"
+    },
+
+    "data_files": {
+      "description": "DBOM: Find data files and databases",
+      "bom_type": "dbom",
+      "type": "rest",
+      "method": "GET",
+      "endpoint": "/search/code",
+      "params": {
+        "q": "extension:csv OR extension:json OR extension:parquet OR extension:db OR extension:sqlite repo:${OWNER}/${REPO}",
+        "per_page": 100
+      },
+      "response_path": "items"
+    },
+
+    "privacy_manifests": {
+      "description": "CBOM: Find privacy manifests and compliance docs",
+      "bom_type": "cbom",
+      "type": "rest",
+      "method": "GET",
+      "endpoint": "/search/code",
+      "params": {
+        "q": "filename:PrivacyInfo.xcprivacy OR filename:privacy-manifest OR privacy policy repo:${OWNER}/${REPO}",
+        "per_page": 100
+      },
+      "response_path": "items"
+    },
+
+    "workflow_metrics": {
+      "description": "OBOM: Get workflow execution metrics",
+      "bom_type": "obom",
+      "type": "rest",
+      "method": "GET",
+      "endpoint": "/repos/${OWNER}/${REPO}/actions/runs",
+      "params": {
+        "per_page": 100,
+        "status": "completed"
+      },
+      "response_path": "workflow_runs"
+    },
+
+    "workflow_inventory": {
+      "description": "WBOM: Get all workflows and actions",
+      "bom_type": "wbom",
+      "type": "graphql",
+      "query": "query WorkflowInventory($owner: String!, $repo: String!) { repository(owner: $owner, name: $repo) { object(expression: \"HEAD:.github/workflows\") { ... on Tree { entries { name type object { ... on Blob { text } } } } } } }",
+      "variables": {
+        "owner": "${OWNER}",
+        "repo": "${REPO}"
+      },
+      "response_path": "data.repository.object.entries"
+    },
+
+    "full_inventory": {
+      "description": "Complete BOM inventory from GitHub",
+      "bom_type": "all",
+      "type": "composite",
+      "queries": [
+        "dependency_graph",
+        "security_vulnerabilities",
+        "repository_catalog",
+        "contributor_stats",
+        "test_matrix",
+        "entitlements_scan",
+        "data_files",
+        "privacy_manifests",
+        "workflow_metrics",
+        "workflow_inventory"
+      ]
+    }
+  },
+
+  "linear_bom_queries": {
+    "dependency_issues": {
+      "description": "SBOM: Get issues related to dependencies",
+      "bom_type": "sbom",
+      "query": "query DependencyIssues($first: Int) { issues(first: $first, filter: { labels: { name: { in: [\"dependency\", \"security\", \"upgrade\"] } } }) { nodes { id identifier title description state { name } priority labels { nodes { name } } createdAt updatedAt } } }",
+      "variables": {
+        "first": 100
+      },
+      "response_path": "data.issues.nodes"
+    },
+
+    "project_catalog": {
+      "description": "ABOM: Get all projects as application catalog",
+      "bom_type": "abom",
+      "query": "query ProjectCatalog($first: Int) { projects(first: $first) { nodes { id name description state startDate targetDate progress lead { name email } teams { nodes { name key } } members { nodes { user { name email } } } } } }",
+      "variables": {
+        "first": 100
+      },
+      "response_path": "data.projects.nodes"
+    },
+
+    "team_metrics": {
+      "description": "PBOM: Get team and member metrics",
+      "bom_type": "pbom",
+      "query": "query TeamMetrics { teams { nodes { id name key members { nodes { user { name email active } } } issues { nodes { state { name } completedAt } } cycles { nodes { name progress completedIssueCount issueCount } } } } }",
+      "variables": {},
+      "response_path": "data.teams.nodes"
+    },
+
+    "device_issues": {
+      "description": "HBOM: Get device-specific issues",
+      "bom_type": "hbom",
+      "query": "query DeviceIssues($first: Int) { issues(first: $first, filter: { labels: { name: { in: [\"ios\", \"macos\", \"device\", \"simulator\", \"hardware\"] } } }) { nodes { id identifier title description labels { nodes { name } } createdAt } } }",
+      "variables": {
+        "first": 100
+      },
+      "response_path": "data.issues.nodes"
+    },
+
+    "privacy_issues": {
+      "description": "IBOM: Get privacy and permission-related issues",
+      "bom_type": "ibom",
+      "query": "query PrivacyIssues($first: Int) { issues(first: $first, filter: { labels: { name: { in: [\"privacy\", \"permissions\", \"tcc\", \"entitlements\"] } } }) { nodes { id identifier title description state { name } priority assignee { name } createdAt updatedAt } } }",
+      "variables": {
+        "first": 100
+      },
+      "response_path": "data.issues.nodes"
+    },
+
+    "compliance_issues": {
+      "description": "CBOM: Get compliance-related issues",
+      "bom_type": "cbom",
+      "query": "query ComplianceIssues($first: Int) { issues(first: $first, filter: { labels: { name: { in: [\"compliance\", \"gdpr\", \"ccpa\", \"audit\", \"legal\"] } } }) { nodes { id identifier title description state { name } priority assignee { name } dueDate createdAt updatedAt } } }",
+      "variables": {
+        "first": 100
+      },
+      "response_path": "data.issues.nodes"
+    },
+
+    "full_inventory": {
+      "description": "Complete BOM inventory from Linear",
+      "bom_type": "all",
+      "type": "composite",
+      "queries": [
+        "dependency_issues",
+        "project_catalog",
+        "team_metrics",
+        "device_issues",
+        "privacy_issues",
+        "compliance_issues"
+      ]
+    }
+  },
+
+  "maestroverse_bom_queries": {
+    "service_catalog": {
+      "description": "ABOM: Get service catalog",
+      "bom_type": "abom",
+      "method": "GET",
+      "endpoint": "/services",
+      "params": {
+        "include": "dependencies,deployments",
+        "limit": 100
+      },
+      "response_path": "data.services"
+    },
+
+    "developer_activity": {
+      "description": "PBOM: Get developer activity patterns",
+      "bom_type": "pbom",
+      "method": "GET",
+      "endpoint": "/analytics/developers",
+      "params": {
+        "metrics": "commits,tasks,velocity",
+        "period": "month",
+        "limit": 100
+      },
+      "response_path": "data.developers"
+    },
+
+    "data_pipelines": {
+      "description": "DBOM: Get data pipeline configurations",
+      "bom_type": "dbom",
+      "method": "GET",
+      "endpoint": "/pipelines",
+      "params": {
+        "type": "data",
+        "status": "active",
+        "limit": 100
+      },
+      "response_path": "data.pipelines"
+    },
+
+    "compliance_projects": {
+      "description": "CBOM: Get compliance projects and status",
+      "bom_type": "cbom",
+      "method": "GET",
+      "endpoint": "/projects",
+      "params": {
+        "tags": "compliance,audit,privacy",
+        "limit": 100
+      },
+      "response_path": "data.projects"
+    },
+
+    "execution_metrics": {
+      "description": "OBOM: Get execution metrics and costs",
+      "bom_type": "obom",
+      "method": "GET",
+      "endpoint": "/metrics/executions",
+      "params": {
+        "period": "week",
+        "include": "costs,duration,errors",
+        "limit": 1000
+      },
+      "response_path": "data.metrics"
+    },
+
+    "orchestration_catalog": {
+      "description": "WBOM: Get orchestration and workflow catalog",
+      "bom_type": "wbom",
+      "method": "GET",
+      "endpoint": "/orchestrations",
+      "params": {
+        "status": "active",
+        "include": "steps,dependencies",
+        "limit": 100
+      },
+      "response_path": "data.orchestrations"
+    },
+
+    "full_inventory": {
+      "description": "Complete BOM inventory from Maestroverse",
+      "bom_type": "all",
+      "type": "composite",
+      "queries": [
+        "service_catalog",
+        "developer_activity",
+        "data_pipelines",
+        "compliance_projects",
+        "execution_metrics",
+        "orchestration_catalog"
+      ]
+    }
+  },
+
+  "cross_bom_queries": {
+    "impact_analysis": {
+      "description": "Analyze impact of changes across all BOMs",
+      "example": "If framework X is updated (SBOM), show affected apps (ABOM), developers (PBOM), devices (HBOM), and workflows (WBOM)",
+      "steps": [
+        {
+          "query": "sbom_audit",
+          "extract": "updated_framework"
+        },
+        {
+          "query": "abom_catalog",
+          "filter": "uses_framework = ${updated_framework}"
+        },
+        {
+          "query": "pbom_insights",
+          "filter": "maintains_apps_using = ${updated_framework}"
+        },
+        {
+          "query": "hbom_inventory",
+          "filter": "supports_framework = ${updated_framework}"
+        },
+        {
+          "query": "wbom_pipelines",
+          "filter": "tests_framework = ${updated_framework}"
+        }
+      ]
+    },
+
+    "security_audit": {
+      "description": "Cross-reference SBOM vulnerabilities with affected systems",
+      "steps": [
+        {
+          "query": "sbom_audit",
+          "extract": "vulnerabilities"
+        },
+        {
+          "query": "abom_catalog",
+          "filter": "depends_on_vulnerable_package"
+        },
+        {
+          "query": "ibom_permissions",
+          "filter": "high_privilege_vulnerable_apps"
+        },
+        {
+          "query": "cbom_compliance",
+          "check": "security_requirements_violated"
+        }
+      ]
+    },
+
+    "compliance_dashboard": {
+      "description": "Aggregate compliance status across BOMs",
+      "steps": [
+        {
+          "query": "cbom_compliance",
+          "extract": "compliance_status"
+        },
+        {
+          "query": "dbom_lineage",
+          "check": "pii_data_locations"
+        },
+        {
+          "query": "ibom_permissions",
+          "check": "permission_compliance"
+        },
+        {
+          "query": "abom_catalog",
+          "check": "app_compliance_scores"
+        }
+      ]
+    },
+
+    "cost_attribution": {
+      "description": "Map OBOM costs to services and teams",
+      "steps": [
+        {
+          "query": "obom_metrics",
+          "extract": "costs_by_service"
+        },
+        {
+          "query": "abom_catalog",
+          "join": "service_to_app"
+        },
+        {
+          "query": "pbom_insights",
+          "join": "app_to_team"
+        }
+      ]
+    },
+
+    "adoption_tracking": {
+      "description": "Track feature/framework adoption",
+      "steps": [
+        {
+          "query": "sbom_audit",
+          "extract": "framework_versions"
+        },
+        {
+          "query": "abom_catalog",
+          "calculate": "adoption_rate"
+        },
+        {
+          "query": "pbom_insights",
+          "identify": "early_adopters"
+        },
+        {
+          "query": "hbom_inventory",
+          "check": "device_compatibility"
+        }
+      ]
+    }
+  },
+
+  "export_formats": {
+    "cyclonedx": {
+      "description": "Export SBOM in CycloneDX format",
+      "version": "1.5",
+      "supported_boms": ["sbom"]
+    },
+    "spdx": {
+      "description": "Export SBOM in SPDX format",
+      "version": "2.3",
+      "supported_boms": ["sbom"]
+    },
+    "custom_json": {
+      "description": "Custom JSON format for all BOMs",
+      "supported_boms": ["all"]
+    }
+  }
+}

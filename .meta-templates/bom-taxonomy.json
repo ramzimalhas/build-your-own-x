@@ -1,0 +1,558 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BOM Taxonomy",
+  "description": "Comprehensive Bill of Materials taxonomy for tracking inventory across development tools",
+  "version": "1.0.0",
+
+  "bom_types": {
+    "sbom": {
+      "name": "Software Bill of Materials",
+      "emoji": "📦",
+      "purpose": "Track software dependencies and supply chain",
+      "categories": [
+        "dependencies",
+        "frameworks",
+        "libraries",
+        "packages"
+      ],
+      "tracked_data": {
+        "component_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the software component"
+        },
+        "version": {
+          "type": "string",
+          "required": true,
+          "description": "Version number (semver)"
+        },
+        "license": {
+          "type": "string",
+          "required": false,
+          "description": "License type (MIT, Apache, GPL, etc.)",
+          "examples": ["MIT", "Apache-2.0", "GPL-3.0", "BSD-3-Clause"]
+        },
+        "vulnerabilities": {
+          "type": "array",
+          "required": false,
+          "description": "Known CVEs",
+          "items": {
+            "cve_id": "string",
+            "severity": "string",
+            "fixed_version": "string"
+          }
+        },
+        "supplier": {
+          "type": "string",
+          "required": false,
+          "description": "Package author/maintainer"
+        },
+        "purl": {
+          "type": "string",
+          "required": false,
+          "description": "Package URL (PURL) identifier"
+        },
+        "hash": {
+          "type": "string",
+          "required": false,
+          "description": "SHA-256 hash for integrity"
+        }
+      },
+      "sources": {
+        "github": ["dependabot", "security_advisories", "dependency_graph"],
+        "linear": ["issues with label:dependency"],
+        "maestroverse": ["tasks tagged:dependency-update"]
+      },
+      "queries": [
+        "outdated_dependencies",
+        "vulnerable_packages",
+        "license_audit",
+        "dependency_tree"
+      ]
+    },
+
+    "abom": {
+      "name": "Application Bill of Materials",
+      "emoji": "📱",
+      "purpose": "Catalog of applications and services",
+      "categories": [
+        "applications",
+        "services",
+        "microservices",
+        "projects"
+      ],
+      "tracked_data": {
+        "app_name": {
+          "type": "string",
+          "required": true
+        },
+        "app_type": {
+          "type": "string",
+          "enum": ["ios", "macos", "watchos", "tvos", "web", "service", "cli"],
+          "required": true
+        },
+        "frameworks_used": {
+          "type": "array",
+          "required": true,
+          "description": "List of frameworks this app depends on"
+        },
+        "xcode_project": {
+          "type": "string",
+          "required": false,
+          "description": "Path to Xcode project/workspace"
+        },
+        "repository": {
+          "type": "string",
+          "required": false
+        },
+        "owner_team": {
+          "type": "string",
+          "required": false
+        },
+        "deployment_targets": {
+          "type": "object",
+          "required": false,
+          "properties": {
+            "ios": "string",
+            "macos": "string"
+          }
+        }
+      },
+      "sources": {
+        "github": ["repositories", "topics", "package.json", "Podfile", "Package.swift"],
+        "linear": ["projects"],
+        "maestroverse": ["projects", "services"]
+      },
+      "queries": [
+        "apps_using_framework",
+        "framework_adoption_rate",
+        "unmaintained_apps",
+        "service_dependencies"
+      ]
+    },
+
+    "pbom": {
+      "name": "People Bill of Materials",
+      "emoji": "🧍",
+      "purpose": "Track developer behaviors and team patterns",
+      "categories": [
+        "developers",
+        "teams",
+        "behaviors",
+        "contributions"
+      ],
+      "tracked_data": {
+        "developer_id": {
+          "type": "string",
+          "required": true
+        },
+        "framework_usage": {
+          "type": "array",
+          "description": "Frameworks this developer uses"
+        },
+        "adoption_patterns": {
+          "type": "object",
+          "properties": {
+            "early_adopter": "boolean",
+            "avg_adoption_delay": "number"
+          }
+        },
+        "contribution_stats": {
+          "type": "object",
+          "properties": {
+            "commits": "number",
+            "prs": "number",
+            "issues": "number"
+          }
+        },
+        "expertise_areas": {
+          "type": "array",
+          "description": "Tags for areas of expertise"
+        }
+      },
+      "sources": {
+        "github": ["commits", "pull_requests", "reviews"],
+        "linear": ["issue_assignments", "comments"],
+        "maestroverse": ["task_assignments", "activity"]
+      },
+      "queries": [
+        "developer_expertise",
+        "team_velocity",
+        "adoption_leaders",
+        "knowledge_gaps"
+      ]
+    },
+
+    "hbom": {
+      "name": "Hardware Bill of Materials",
+      "emoji": "🏠",
+      "purpose": "Device inventory and compatibility",
+      "categories": [
+        "devices",
+        "simulators",
+        "test_devices",
+        "infrastructure"
+      ],
+      "tracked_data": {
+        "device_model": {
+          "type": "string",
+          "required": true,
+          "examples": ["iPhone 15 Pro", "MacBook Pro M3", "iPad Air"]
+        },
+        "os_version": {
+          "type": "string",
+          "required": true
+        },
+        "supported_frameworks": {
+          "type": "array",
+          "description": "Frameworks that work on this device"
+        },
+        "minimum_deployment": {
+          "type": "object",
+          "properties": {
+            "ios": "string",
+            "macos": "string"
+          }
+        },
+        "availability": {
+          "type": "string",
+          "enum": ["current", "deprecated", "obsolete"]
+        }
+      },
+      "sources": {
+        "github": ["ci_config", "test_matrix"],
+        "linear": ["issues with label:device-specific"],
+        "maestroverse": ["test_infrastructure"]
+      },
+      "queries": [
+        "device_compatibility",
+        "framework_device_support",
+        "test_coverage_by_device",
+        "obsolete_device_support"
+      ]
+    },
+
+    "ibom": {
+      "name": "Identity Bill of Materials",
+      "emoji": "🔐",
+      "purpose": "Authentication and authorization inventory",
+      "categories": [
+        "permissions",
+        "entitlements",
+        "tcc",
+        "auth_methods"
+      ],
+      "tracked_data": {
+        "permission_type": {
+          "type": "string",
+          "required": true,
+          "examples": ["camera", "location", "contacts", "photos"]
+        },
+        "tcc_service": {
+          "type": "string",
+          "required": false,
+          "description": "TCC (Transparency, Consent, and Control) service name"
+        },
+        "entitlement": {
+          "type": "string",
+          "required": false,
+          "description": "Associated entitlement key"
+        },
+        "usage_description": {
+          "type": "string",
+          "required": true,
+          "description": "User-facing permission request message"
+        },
+        "required_by": {
+          "type": "array",
+          "description": "List of apps/frameworks requiring this permission"
+        },
+        "privacy_impact": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        }
+      },
+      "sources": {
+        "github": ["Info.plist", "entitlements", "privacy_manifests"],
+        "linear": ["issues with label:privacy", "label:permissions"],
+        "maestroverse": ["compliance_tasks"]
+      },
+      "queries": [
+        "permission_audit",
+        "tcc_mappings",
+        "over_privileged_apps",
+        "privacy_manifest_status"
+      ]
+    },
+
+    "dbom": {
+      "name": "Data Bill of Materials",
+      "emoji": "🗄️",
+      "purpose": "Dataset lineage and provenance",
+      "categories": [
+        "datasets",
+        "databases",
+        "pipelines",
+        "transformations"
+      ],
+      "tracked_data": {
+        "dataset_name": {
+          "type": "string",
+          "required": true
+        },
+        "source_format": {
+          "type": "string",
+          "examples": ["csv", "json", "parquet", "sql"]
+        },
+        "destination_format": {
+          "type": "string",
+          "examples": ["duckdb", "sqlite", "postgres"]
+        },
+        "lineage": {
+          "type": "array",
+          "description": "Chain of transformations",
+          "items": {
+            "step": "string",
+            "tool": "string",
+            "timestamp": "string"
+          }
+        },
+        "schema": {
+          "type": "object",
+          "description": "Data schema definition"
+        },
+        "size_bytes": {
+          "type": "number"
+        },
+        "row_count": {
+          "type": "number"
+        },
+        "pii_fields": {
+          "type": "array",
+          "description": "Fields containing PII"
+        }
+      },
+      "sources": {
+        "github": ["data directories", "sql files", "migrations"],
+        "linear": ["issues with label:data-pipeline"],
+        "maestroverse": ["data_tasks", "etl_workflows"]
+      },
+      "queries": [
+        "data_lineage",
+        "pii_inventory",
+        "dataset_dependencies",
+        "transformation_pipeline"
+      ]
+    },
+
+    "cbom": {
+      "name": "Compliance Bill of Materials",
+      "emoji": "📋",
+      "purpose": "Regulatory compliance tracking",
+      "categories": [
+        "regulations",
+        "privacy",
+        "security",
+        "certifications"
+      ],
+      "tracked_data": {
+        "regulation": {
+          "type": "string",
+          "examples": ["GDPR", "UAE Data Protection", "CCPA", "HIPAA"],
+          "required": true
+        },
+        "jurisdiction": {
+          "type": "string",
+          "examples": ["UAE", "EU", "US", "Global"],
+          "required": true
+        },
+        "compliance_status": {
+          "type": "string",
+          "enum": ["compliant", "in_progress", "non_compliant", "not_applicable"]
+        },
+        "privacy_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "requirement": "string",
+            "status": "string",
+            "evidence": "string"
+          }
+        },
+        "audit_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "description": "string",
+            "severity": "string",
+            "remediation": "string"
+          }
+        }
+      },
+      "sources": {
+        "github": ["compliance docs", "privacy policies"],
+        "linear": ["issues with label:compliance", "label:privacy"],
+        "maestroverse": ["compliance_projects", "audit_tasks"]
+      },
+      "queries": [
+        "compliance_status",
+        "privacy_score_report",
+        "regulation_coverage",
+        "audit_findings"
+      ]
+    },
+
+    "obom": {
+      "name": "Observability Bill of Materials",
+      "emoji": "📡",
+      "purpose": "Monitoring and performance metrics",
+      "categories": [
+        "metrics",
+        "traces",
+        "logs",
+        "costs"
+      ],
+      "tracked_data": {
+        "metric_name": {
+          "type": "string",
+          "required": true
+        },
+        "metric_type": {
+          "type": "string",
+          "enum": ["counter", "gauge", "histogram", "timer"]
+        },
+        "execution_time": {
+          "type": "object",
+          "properties": {
+            "p50": "number",
+            "p95": "number",
+            "p99": "number"
+          }
+        },
+        "resource_usage": {
+          "type": "object",
+          "properties": {
+            "cpu": "number",
+            "memory": "number",
+            "tokens": "number",
+            "cost_usd": "number"
+          }
+        },
+        "cell_executions": {
+          "type": "number",
+          "description": "Number of notebook cell executions"
+        },
+        "error_rate": {
+          "type": "number"
+        },
+        "slo_status": {
+          "type": "string",
+          "enum": ["met", "at_risk", "violated"]
+        }
+      },
+      "sources": {
+        "github": ["actions logs", "workflow runs"],
+        "linear": ["issues with label:performance"],
+        "maestroverse": ["metrics", "observability_data"]
+      },
+      "queries": [
+        "performance_metrics",
+        "cost_breakdown",
+        "execution_times",
+        "error_budget"
+      ]
+    },
+
+    "wbom": {
+      "name": "Workflow Bill of Materials",
+      "emoji": "🔄",
+      "purpose": "Pipeline and workflow definitions",
+      "categories": [
+        "ci_cd",
+        "data_pipelines",
+        "automation",
+        "orchestration"
+      ],
+      "tracked_data": {
+        "workflow_name": {
+          "type": "string",
+          "required": true
+        },
+        "workflow_type": {
+          "type": "string",
+          "enum": ["ci_cd", "data_pipeline", "cron", "event_driven"]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "name": "string",
+            "tool": "string",
+            "dependencies": "array"
+          }
+        },
+        "pipeline_stages": {
+          "type": "array",
+          "description": "Sequential stages like: semantic_engine → duckdb → output"
+        },
+        "trigger": {
+          "type": "object",
+          "properties": {
+            "type": "string",
+            "schedule": "string",
+            "events": "array"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "description": "External services/tools required"
+        },
+        "success_rate": {
+          "type": "number"
+        }
+      },
+      "sources": {
+        "github": ["workflows", "actions"],
+        "linear": ["automation rules"],
+        "maestroverse": ["orchestrations", "workflows"]
+      },
+      "queries": [
+        "workflow_inventory",
+        "pipeline_health",
+        "workflow_dependencies",
+        "automation_coverage"
+      ]
+    }
+  },
+
+  "cross_bom_queries": {
+    "impact_analysis": {
+      "description": "Analyze impact of changes across all BOMs",
+      "example": "If we update framework X, which apps (ABOM), developers (PBOM), devices (HBOM), and workflows (WBOM) are affected?"
+    },
+    "security_audit": {
+      "description": "Cross-reference SBOM vulnerabilities with ABOM apps and IBOM permissions"
+    },
+    "compliance_dashboard": {
+      "description": "Aggregate CBOM status with DBOM PII data and IBOM permissions"
+    },
+    "cost_attribution": {
+      "description": "Map OBOM costs to ABOM services and PBOM teams"
+    },
+    "adoption_tracking": {
+      "description": "Track framework rollout across ABOM apps, PBOM developers, and HBOM devices"
+    }
+  },
+
+  "standards": {
+    "sbom": ["SPDX", "CycloneDX", "SWID"],
+    "compliance": ["ISO 27001", "SOC 2", "GDPR", "UAE PDPL"],
+    "observability": ["OpenTelemetry", "Prometheus", "W3C Trace Context"]
+  }
+}

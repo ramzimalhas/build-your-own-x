@@ -178,6 +178,175 @@
           "template": "blocked_tasks"
         }
       ]
+    },
+
+    "sbom_audit": {
+      "description": "Software Bill of Materials - dependency audit",
+      "bom_type": "sbom",
+      "queries": [
+        {
+          "service": "github",
+          "template": "dependency_graph"
+        },
+        {
+          "service": "github",
+          "template": "security_vulnerabilities"
+        },
+        {
+          "service": "linear",
+          "template": "dependency_issues"
+        }
+      ]
+    },
+
+    "abom_catalog": {
+      "description": "Application Bill of Materials - app/service catalog",
+      "bom_type": "abom",
+      "queries": [
+        {
+          "service": "github",
+          "template": "repository_catalog"
+        },
+        {
+          "service": "linear",
+          "template": "project_catalog"
+        },
+        {
+          "service": "maestroverse",
+          "template": "service_catalog"
+        }
+      ]
+    },
+
+    "pbom_insights": {
+      "description": "People Bill of Materials - developer insights",
+      "bom_type": "pbom",
+      "queries": [
+        {
+          "service": "github",
+          "template": "contributor_stats"
+        },
+        {
+          "service": "linear",
+          "template": "team_metrics"
+        },
+        {
+          "service": "maestroverse",
+          "template": "developer_activity"
+        }
+      ]
+    },
+
+    "hbom_inventory": {
+      "description": "Hardware Bill of Materials - device inventory",
+      "bom_type": "hbom",
+      "queries": [
+        {
+          "service": "github",
+          "template": "test_matrix"
+        },
+        {
+          "service": "linear",
+          "template": "device_issues"
+        }
+      ]
+    },
+
+    "ibom_permissions": {
+      "description": "Identity Bill of Materials - permission audit",
+      "bom_type": "ibom",
+      "queries": [
+        {
+          "service": "github",
+          "template": "entitlements_scan"
+        },
+        {
+          "service": "linear",
+          "template": "privacy_issues"
+        }
+      ]
+    },
+
+    "dbom_lineage": {
+      "description": "Data Bill of Materials - dataset lineage",
+      "bom_type": "dbom",
+      "queries": [
+        {
+          "service": "github",
+          "template": "data_files"
+        },
+        {
+          "service": "maestroverse",
+          "template": "data_pipelines"
+        }
+      ]
+    },
+
+    "cbom_compliance": {
+      "description": "Compliance Bill of Materials - regulatory status",
+      "bom_type": "cbom",
+      "queries": [
+        {
+          "service": "linear",
+          "template": "compliance_issues"
+        },
+        {
+          "service": "github",
+          "template": "privacy_manifests"
+        },
+        {
+          "service": "maestroverse",
+          "template": "compliance_projects"
+        }
+      ]
+    },
+
+    "obom_metrics": {
+      "description": "Observability Bill of Materials - performance metrics",
+      "bom_type": "obom",
+      "queries": [
+        {
+          "service": "github",
+          "template": "workflow_metrics"
+        },
+        {
+          "service": "maestroverse",
+          "template": "execution_metrics"
+        }
+      ]
+    },
+
+    "wbom_pipelines": {
+      "description": "Workflow Bill of Materials - pipeline inventory",
+      "bom_type": "wbom",
+      "queries": [
+        {
+          "service": "github",
+          "template": "workflow_inventory"
+        },
+        {
+          "service": "maestroverse",
+          "template": "orchestration_catalog"
+        }
+      ]
+    },
+
+    "bom_complete_inventory": {
+      "description": "Complete BOM inventory across all 9 types",
+      "queries": [
+        {
+          "service": "github",
+          "template": "full_inventory"
+        },
+        {
+          "service": "linear",
+          "template": "full_inventory"
+        },
+        {
+          "service": "maestroverse",
+          "template": "full_inventory"
+        }
+      ]
     }
   },
 
@@ -195,6 +364,27 @@
       "new_assignment": true,
       "mention": true,
       "status_change": true
+    }
+  },
+
+  "bom_config": {
+    "enabled": true,
+    "taxonomy_file": "./bom-taxonomy.json",
+    "types": {
+      "sbom": { "enabled": true, "priority": "high" },
+      "abom": { "enabled": true, "priority": "high" },
+      "pbom": { "enabled": true, "priority": "medium" },
+      "hbom": { "enabled": true, "priority": "medium" },
+      "ibom": { "enabled": true, "priority": "high" },
+      "dbom": { "enabled": true, "priority": "medium" },
+      "cbom": { "enabled": true, "priority": "high" },
+      "obom": { "enabled": true, "priority": "medium" },
+      "wbom": { "enabled": true, "priority": "medium" }
+    },
+    "cross_bom_analysis": {
+      "enabled": true,
+      "impact_tracking": true,
+      "dependency_mapping": true
     }
   },
 
