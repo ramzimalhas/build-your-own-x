@@ -1,0 +1,424 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "name": "GitHub Monolithic Spec Kit",
+  "description": "Universal GitHub governance with BOM integration",
+
+  "organizations": {
+    "ramzimalhas": {
+      "type": "personal",
+      "default_visibility": "public",
+      "default_branch": "main",
+      "apply_to": "all",
+      "exclude_repos": ["dotfiles-backup", "archive-*"],
+      "priority": "medium"
+    },
+    "Life-Hackers-inc": {
+      "type": "organization",
+      "default_visibility": "private",
+      "default_branch": "main",
+      "apply_to": "all",
+      "exclude_repos": ["archive-*", "test-*"],
+      "priority": "high"
+    },
+    "Maestro-AI-Labs-LLC-FZ": {
+      "type": "organization",
+      "default_visibility": "private",
+      "default_branch": "main",
+      "apply_to": "all",
+      "exclude_repos": [],
+      "priority": "critical",
+      "special_rules": {
+        "compliance_required": true,
+        "security_enhanced": true,
+        "telemetry_required": true
+      }
+    }
+  },
+
+  "features": {
+    "bom_tracking": {
+      "enabled": true,
+      "types": {
+        "sbom": {
+          "enabled": true,
+          "frequency": "daily",
+          "alert_threshold": "HIGH",
+          "auto_create_issues": true
+        },
+        "abom": {
+          "enabled": true,
+          "frequency": "weekly",
+          "track_dependencies": true
+        },
+        "pbom": {
+          "enabled": true,
+          "frequency": "weekly",
+          "track_contributions": true
+        },
+        "hbom": {
+          "enabled": false,
+          "frequency": "monthly",
+          "comment": "Only needed for device-specific projects"
+        },
+        "ibom": {
+          "enabled": true,
+          "frequency": "weekly",
+          "scan_for_secrets": true,
+          "privacy_manifest_check": true
+        },
+        "dbom": {
+          "enabled": true,
+          "frequency": "daily",
+          "track_lineage": true,
+          "pii_detection": true
+        },
+        "cbom": {
+          "enabled": true,
+          "frequency": "weekly",
+          "jurisdictions": ["UAE", "EU", "US"],
+          "privacy_score_threshold": 85,
+          "auto_report": true
+        },
+        "obom": {
+          "enabled": true,
+          "frequency": "hourly",
+          "track_costs": true,
+          "track_performance": true,
+          "alert_on_anomalies": true
+        },
+        "wbom": {
+          "enabled": true,
+          "frequency": "daily",
+          "track_workflow_health": true,
+          "success_rate_threshold": 0.95
+        }
+      },
+      "integration": {
+        "query_runner_path": "../meta-templates/query-runner.js",
+        "telemetry_endpoint": "https://telemetry.maestro.ae/api/v1/ingest",
+        "slack_webhook": "${SLACK_WEBHOOK_URL}",
+        "email_alerts": "devops@maestro.ae"
+      }
+    },
+
+    "security_scanning": {
+      "enabled": true,
+      "tools": {
+        "dependabot": {
+          "enabled": true,
+          "schedule": "weekly",
+          "package_ecosystems": ["npm", "pip", "bundler", "cargo", "go"],
+          "auto_merge_patch": true,
+          "auto_merge_minor": false
+        },
+        "code_scanning": {
+          "enabled": true,
+          "tool": "codeql",
+          "languages": ["javascript", "typescript", "python", "go", "ruby"],
+          "schedule": "weekly",
+          "on_push": true,
+          "on_pr": true
+        },
+        "secret_scanning": {
+          "enabled": true,
+          "push_protection": true,
+          "custom_patterns": []
+        },
+        "trivy": {
+          "enabled": true,
+          "scan_types": ["fs", "image", "config"],
+          "severity": ["CRITICAL", "HIGH"],
+          "on_pr": true
+        }
+      },
+      "sla": {
+        "critical": "24h",
+        "high": "7d",
+        "medium": "30d",
+        "low": "90d"
+      }
+    },
+
+    "compliance": {
+      "enabled": true,
+      "frameworks": {
+        "uae_pdpl": {
+          "enabled": true,
+          "articles": [6, 7, 8, 11, 12, 13, 18, 23],
+          "auto_check": true,
+          "report_frequency": "weekly"
+        },
+        "gdpr": {
+          "enabled": true,
+          "articles": [17, 20, 32, 33],
+          "auto_check": true,
+          "report_frequency": "monthly"
+        },
+        "soc2": {
+          "enabled": true,
+          "type": "type2",
+          "controls": ["CC1", "CC2", "CC3", "CC6", "CC7"],
+          "audit_frequency": "quarterly"
+        }
+      },
+      "privacy_score": {
+        "enabled": true,
+        "minimum": 85,
+        "block_on_failure": false,
+        "components": {
+          "consent_management": 0.3,
+          "data_minimization": 0.2,
+          "user_rights": 0.2,
+          "security": 0.15,
+          "transparency": 0.1,
+          "vendor_management": 0.05
+        }
+      }
+    },
+
+    "quality_gates": {
+      "enabled": true,
+      "checks": {
+        "linting": {
+          "enabled": true,
+          "tools": ["eslint", "prettier", "ruff"],
+          "auto_fix": true,
+          "block_on_failure": true
+        },
+        "testing": {
+          "enabled": true,
+          "frameworks": ["jest", "pytest", "go test"],
+          "required_on_pr": true,
+          "coverage_threshold": 80,
+          "block_on_failure": true
+        },
+        "type_checking": {
+          "enabled": true,
+          "tools": ["typescript", "mypy"],
+          "strict_mode": true,
+          "block_on_failure": true
+        },
+        "performance": {
+          "enabled": true,
+          "bundle_size_limit_kb": 500,
+          "lighthouse_min_score": 90,
+          "block_on_failure": false
+        }
+      }
+    },
+
+    "telemetry": {
+      "enabled": true,
+      "endpoint": "https://telemetry.maestro.ae/api/v1/ingest",
+      "auth_header": "Authorization: Bearer ${TELEMETRY_TOKEN}",
+      "push_frequency": "hourly",
+      "batch_size": 100,
+      "retry_on_failure": true,
+      "events": [
+        "spec_kit_install",
+        "bom_scan",
+        "security_alert",
+        "compliance_check",
+        "pr_created",
+        "pr_merged",
+        "workflow_run",
+        "deployment"
+      ],
+      "pii_filter": {
+        "enabled": true,
+        "scrub_fields": ["email", "ip_address", "user_name"]
+      }
+    }
+  },
+
+  "branch_protection": {
+    "main": {
+      "required_status_checks": {
+        "strict": true,
+        "contexts": [
+          "ci",
+          "security-scan",
+          "bom-tracker",
+          "compliance-check",
+          "quality-gate"
+        ]
+      },
+      "enforce_admins": false,
+      "required_pull_request_reviews": {
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": true,
+        "required_approving_review_count": 1,
+        "require_last_push_approval": false
+      },
+      "restrictions": null,
+      "required_linear_task": false,
+      "required_conversation_resolution": true,
+      "allow_force_pushes": false,
+      "allow_deletions": false,
+      "required_signatures": false
+    },
+    "develop": {
+      "required_status_checks": {
+        "strict": false,
+        "contexts": ["ci"]
+      },
+      "enforce_admins": false,
+      "required_pull_request_reviews": null,
+      "allow_force_pushes": true,
+      "allow_deletions": false
+    },
+    "staging": {
+      "required_status_checks": {
+        "strict": true,
+        "contexts": ["ci", "security-scan", "bom-tracker"]
+      },
+      "enforce_admins": false,
+      "required_pull_request_reviews": {
+        "required_approving_review_count": 1
+      },
+      "allow_force_pushes": false,
+      "allow_deletions": false
+    }
+  },
+
+  "pr_requirements": {
+    "require_linear_issue": true,
+    "linear_issue_regex": "^(ENG|PROD|BUG|SEC)-[0-9]+:",
+    "require_description": true,
+    "min_description_length": 50,
+    "require_changelog": true,
+    "changelog_formats": ["CHANGELOG.md", "docs/CHANGELOG.md"],
+    "require_tests": true,
+    "require_bom_update": true,
+    "bom_update_triggers": [
+      "package.json",
+      "requirements.txt",
+      "go.mod",
+      "Cargo.toml"
+    ],
+    "block_on_failed_checks": true,
+    "require_review_from_codeowners": true,
+    "auto_assign_reviewers": true,
+    "auto_label_by_files": true,
+    "stale_pr_days": 7,
+    "auto_close_stale_prs": false
+  },
+
+  "issue_management": {
+    "enabled": true,
+    "templates": {
+      "bug": true,
+      "feature": true,
+      "security": true,
+      "compliance": true,
+      "bom_alert": true
+    },
+    "auto_labels": {
+      "enabled": true,
+      "rules": [
+        {"pattern": "security|cve|vulnerability", "label": "security"},
+        {"pattern": "compliance|pdpl|gdpr", "label": "compliance"},
+        {"pattern": "bom|sbom|dependency", "label": "dependencies"},
+        {"pattern": "bug|error|crash", "label": "bug"},
+        {"pattern": "feature|enhancement", "label": "enhancement"}
+      ]
+    },
+    "stale_issue_days": 30,
+    "auto_close_stale_issues": false,
+    "require_triage_label": true
+  },
+
+  "sync_config": {
+    "bidirectional": true,
+    "conflict_resolution": "manual",
+    "priority_rules": {
+      "policies": "local",
+      "metrics": "remote",
+      "overrides": "remote"
+    },
+    "auto_create_pr": true,
+    "pr_title_template": "[spec-kit] Sync from ${SOURCE}",
+    "sync_frequency": "weekly",
+    "sync_schedule": "0 2 * * 1",
+    "max_pr_per_sync": 50,
+    "require_approval_before_merge": true,
+    "notifications": {
+      "slack": true,
+      "email": true,
+      "github_notifications": true
+    }
+  },
+
+  "safety": {
+    "dry_run_first": true,
+    "require_approval": true,
+    "approval_threshold": {
+      "low_risk": 0,
+      "medium_risk": 1,
+      "high_risk": 2
+    },
+    "risk_assessment": {
+      "workflow_changes": "high",
+      "branch_protection_changes": "high",
+      "dependency_updates": "medium",
+      "documentation_changes": "low"
+    },
+    "max_repos_per_batch": 10,
+    "rollback_on_failure": true,
+    "rollback_threshold": 0.8,
+    "validation_required": true,
+    "validation_checks": [
+      "json_schema",
+      "workflow_syntax",
+      "circular_dependencies",
+      "required_secrets"
+    ],
+    "backup_before_install": true,
+    "backup_retention_days": 30
+  },
+
+  "notifications": {
+    "channels": {
+      "slack": {
+        "enabled": true,
+        "webhook_url": "${SLACK_WEBHOOK_URL}",
+        "channel": "#devops",
+        "events": ["security_alert", "compliance_failure", "deployment", "sync_complete"]
+      },
+      "email": {
+        "enabled": true,
+        "recipients": ["devops@maestro.ae", "security@maestro.ae"],
+        "events": ["security_alert", "compliance_failure"]
+      },
+      "github": {
+        "enabled": true,
+        "create_issues": true,
+        "events": ["security_alert", "compliance_failure", "bom_alert"]
+      }
+    },
+    "digest": {
+      "enabled": true,
+      "frequency": "weekly",
+      "include": ["bom_summary", "security_summary", "compliance_summary", "pr_summary"]
+    }
+  },
+
+  "overrides": {
+    "allow_repo_overrides": true,
+    "override_file": ".github/spec-kit-overrides.json",
+    "require_validation": true,
+    "require_pr_for_override": true,
+    "sync_overrides_to_main": true,
+    "override_priority": "remote"
+  },
+
+  "metadata": {
+    "created_at": "2024-02-01T00:00:00Z",
+    "created_by": "ramzimalhas",
+    "last_updated": "2024-02-01T00:00:00Z",
+    "version_history": [
+      {"version": "1.0.0", "date": "2024-02-01", "changes": "Initial release"}
+    ]
+  }
+}
