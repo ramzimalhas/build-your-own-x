@@ -1,0 +1,617 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PLSFSIOM Framework Specification",
+  "version": "1.0.0",
+  "description": "9-dimensional framework for binding artifacts and events in Maestro's physical-human mesh",
+
+  "dimensions": {
+    "P_Person": {
+      "name": "Person",
+      "symbol": "P",
+      "description": "Human identity, roles, permissions, and behavioral profile",
+      "required": true,
+      "data_types": {
+        "user_id": {
+          "type": "uuid",
+          "description": "Unique identifier for the person",
+          "example": "usr_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+          "pii": true
+        },
+        "face_embedding": {
+          "type": "vector",
+          "dimensions": 512,
+          "description": "Face recognition embedding (anonymized)",
+          "example": "[0.123, -0.456, ...]",
+          "pii": true,
+          "consent_required": "facial_recognition"
+        },
+        "roles": {
+          "type": "array",
+          "items": "string",
+          "description": "User roles in the system",
+          "example": ["employee", "security_cleared", "floor_2_access"],
+          "pii": false
+        },
+        "behavioral_profile": {
+          "type": "object",
+          "description": "Learned patterns and preferences",
+          "properties": {
+            "typical_arrival_time": "time",
+            "preferred_workspaces": "array",
+            "collaboration_frequency": "number"
+          },
+          "pii": true,
+          "consent_required": "behavioral_analytics"
+        },
+        "permissions": {
+          "type": "object",
+          "description": "Granted permissions per data type",
+          "properties": {
+            "camera": "boolean",
+            "location": "boolean",
+            "microphone": "boolean",
+            "biometrics": "boolean"
+          }
+        }
+      },
+      "privacy_tier": "critical",
+      "retention_days": 365,
+      "deletion_cascade": true
+    },
+
+    "L_Location": {
+      "name": "Location",
+      "symbol": "L",
+      "description": "Physical coordinates (GPS) and semantic location",
+      "required": true,
+      "data_types": {
+        "coordinates": {
+          "type": "geopoint",
+          "format": "WGS84",
+          "description": "GPS coordinates",
+          "example": {"lat": 25.1972, "lon": 55.2744},
+          "precision": "±5 meters",
+          "pii": true,
+          "consent_required": "location_tracking"
+        },
+        "semantic_location": {
+          "type": "string",
+          "description": "Human-readable location",
+          "example": "Dubai Mall, Level 2, Starbucks",
+          "pii": false
+        },
+        "geofence_id": {
+          "type": "string",
+          "description": "Associated geofence zone",
+          "example": "zone_retail_dmall_l2",
+          "pii": false
+        },
+        "altitude": {
+          "type": "number",
+          "unit": "meters",
+          "description": "Elevation above sea level",
+          "example": 15.3
+        },
+        "indoor": {
+          "type": "boolean",
+          "description": "Whether location is indoors",
+          "example": true
+        }
+      },
+      "privacy_tier": "high",
+      "retention_days": 90,
+      "anonymization": "after_7_days"
+    },
+
+    "S_Space": {
+      "name": "Space",
+      "symbol": "S",
+      "description": "3D spatial boundaries, floor plans, geofences",
+      "required": false,
+      "data_types": {
+        "space_id": {
+          "type": "uuid",
+          "description": "Unique identifier for the space",
+          "example": "spc_floor2_cafeteria",
+          "pii": false
+        },
+        "boundary": {
+          "type": "polygon",
+          "description": "3D boundary of the space",
+          "example": {"type": "Polygon", "coordinates": [[[55.274, 25.197], [55.275, 25.197], [55.275, 25.198]]]},
+          "pii": false
+        },
+        "capacity": {
+          "type": "number",
+          "description": "Max occupancy of space",
+          "example": 50,
+          "pii": false
+        },
+        "current_occupancy": {
+          "type": "number",
+          "description": "Current number of people",
+          "example": 23,
+          "pii": false
+        },
+        "floor_plan": {
+          "type": "url",
+          "description": "Link to floor plan image/3D model",
+          "example": "s3://maestro-assets/floor-plans/building-a-floor-2.glb",
+          "pii": false
+        },
+        "ar_anchors": {
+          "type": "array",
+          "description": "AR anchor points for spatial mapping",
+          "items": {
+            "anchor_id": "string",
+            "position": "vector3",
+            "type": "string"
+          },
+          "pii": false
+        }
+      },
+      "privacy_tier": "low",
+      "retention_days": 730,
+      "public_access": true
+    },
+
+    "F_Function": {
+      "name": "Function",
+      "symbol": "F",
+      "description": "Purpose, intent, or workflow being executed",
+      "required": true,
+      "data_types": {
+        "function_type": {
+          "type": "enum",
+          "values": ["work", "meeting", "transit", "leisure", "shopping", "security_patrol", "delivery", "maintenance"],
+          "description": "Type of activity",
+          "example": "meeting",
+          "pii": false
+        },
+        "intent": {
+          "type": "string",
+          "description": "High-level goal",
+          "example": "Pick up coffee order",
+          "pii": false
+        },
+        "workflow_id": {
+          "type": "uuid",
+          "description": "Associated workflow or task",
+          "example": "wf_morning_routine_001",
+          "pii": false
+        },
+        "steps": {
+          "type": "array",
+          "description": "Decomposed steps to achieve function",
+          "items": {
+            "step_id": "string",
+            "action": "string",
+            "status": "string",
+            "dependencies": "array"
+          },
+          "example": [
+            {"step_id": "1", "action": "Navigate to Starbucks", "status": "completed"},
+            {"step_id": "2", "action": "Scan QR code for order", "status": "in_progress"}
+          ]
+        },
+        "priority": {
+          "type": "enum",
+          "values": ["low", "medium", "high", "urgent"],
+          "description": "Priority level",
+          "example": "medium"
+        }
+      },
+      "privacy_tier": "medium",
+      "retention_days": 30
+    },
+
+    "S_State": {
+      "name": "State",
+      "symbol": "S2",
+      "description": "Current status, lifecycle stage, real-time conditions",
+      "required": true,
+      "data_types": {
+        "status": {
+          "type": "enum",
+          "values": ["idle", "active", "in_transit", "waiting", "completed", "failed", "blocked"],
+          "description": "Current state",
+          "example": "in_transit",
+          "pii": false
+        },
+        "lifecycle_stage": {
+          "type": "enum",
+          "values": ["created", "scheduled", "started", "paused", "resumed", "finished", "archived"],
+          "description": "Workflow lifecycle",
+          "example": "started"
+        },
+        "eta": {
+          "type": "datetime",
+          "description": "Estimated time of arrival/completion",
+          "example": "2024-02-01T14:35:00Z",
+          "pii": false
+        },
+        "duration": {
+          "type": "number",
+          "unit": "seconds",
+          "description": "Time spent in current state",
+          "example": 300
+        },
+        "confidence": {
+          "type": "number",
+          "min": 0,
+          "max": 1,
+          "description": "AI confidence in state prediction",
+          "example": 0.87
+        }
+      },
+      "privacy_tier": "low",
+      "retention_days": 7,
+      "real_time": true
+    },
+
+    "I_Interaction": {
+      "name": "Interaction",
+      "symbol": "I",
+      "description": "Events, relationships, triggers between entities",
+      "required": false,
+      "data_types": {
+        "interaction_type": {
+          "type": "enum",
+          "values": ["meeting", "handoff", "proximity", "transaction", "message", "scan", "voice_command"],
+          "description": "Type of interaction",
+          "example": "meeting",
+          "pii": false
+        },
+        "participants": {
+          "type": "array",
+          "items": "uuid",
+          "description": "Entities involved in interaction",
+          "example": ["usr_123", "usr_456"],
+          "pii": true,
+          "consent_required": "interaction_tracking"
+        },
+        "trigger": {
+          "type": "string",
+          "description": "What caused this interaction",
+          "example": "Proximity alert: <2 meters for >30 seconds",
+          "pii": false
+        },
+        "outcome": {
+          "type": "object",
+          "description": "Result of interaction",
+          "properties": {
+            "success": "boolean",
+            "action_taken": "string",
+            "next_steps": "array"
+          },
+          "example": {"success": true, "action_taken": "Scheduled follow-up meeting", "next_steps": ["Send calendar invite"]}
+        },
+        "relationship_strength": {
+          "type": "number",
+          "min": 0,
+          "max": 1,
+          "description": "Strength of relationship between entities",
+          "example": 0.65
+        }
+      },
+      "privacy_tier": "high",
+      "retention_days": 30,
+      "anonymization": "after_7_days"
+    },
+
+    "O_Object": {
+      "name": "Object",
+      "symbol": "O",
+      "description": "Physical items, assets, devices, inventory",
+      "required": false,
+      "data_types": {
+        "object_id": {
+          "type": "uuid",
+          "description": "Unique identifier for object",
+          "example": "obj_iphone15pro_001",
+          "pii": false
+        },
+        "object_type": {
+          "type": "enum",
+          "values": ["device", "asset", "product", "vehicle", "equipment", "consumable"],
+          "description": "Category of object",
+          "example": "device"
+        },
+        "make_model": {
+          "type": "string",
+          "description": "Manufacturer and model",
+          "example": "Apple iPhone 15 Pro",
+          "pii": false
+        },
+        "serial_number": {
+          "type": "string",
+          "description": "Serial number or IMEI",
+          "example": "ABC123XYZ789",
+          "pii": true,
+          "consent_required": "asset_tracking"
+        },
+        "ownership": {
+          "type": "object",
+          "properties": {
+            "owner_id": "uuid",
+            "owner_type": "enum",
+            "assignment_date": "datetime"
+          },
+          "example": {"owner_id": "usr_123", "owner_type": "employee", "assignment_date": "2024-01-15T00:00:00Z"},
+          "pii": true
+        },
+        "condition": {
+          "type": "enum",
+          "values": ["new", "good", "fair", "poor", "damaged", "lost"],
+          "description": "Physical condition",
+          "example": "good"
+        },
+        "sensors": {
+          "type": "array",
+          "description": "Sensors embedded in object",
+          "items": {
+            "sensor_type": "string",
+            "capabilities": "array",
+            "status": "string"
+          },
+          "example": [
+            {"sensor_type": "gps", "capabilities": ["location", "altitude"], "status": "active"},
+            {"sensor_type": "camera", "capabilities": ["photo", "video", "ar"], "status": "active"}
+          ]
+        }
+      },
+      "privacy_tier": "medium",
+      "retention_days": 365
+    },
+
+    "M_Metadata": {
+      "name": "Metadata",
+      "symbol": "M",
+      "description": "Temporal, compliance, provenance, and cross-references",
+      "required": true,
+      "data_types": {
+        "timestamp": {
+          "type": "datetime",
+          "format": "ISO8601",
+          "description": "When this record was created",
+          "example": "2024-02-01T14:30:00Z",
+          "required": true
+        },
+        "jurisdiction": {
+          "type": "enum",
+          "values": ["UAE", "EU", "US", "GLOBAL"],
+          "description": "Legal jurisdiction for data",
+          "example": "UAE",
+          "required": true
+        },
+        "consent_id": {
+          "type": "uuid",
+          "description": "Reference to consent record",
+          "example": "consent_pdpl_2024_001",
+          "required": true,
+          "audit_trail": true
+        },
+        "bom_references": {
+          "type": "object",
+          "description": "Links to Bill of Materials entries",
+          "properties": {
+            "sbom": "array",
+            "abom": "string",
+            "pbom": "string",
+            "hbom": "array",
+            "ibom": "array",
+            "dbom": "string",
+            "cbom": "array",
+            "obom": "object",
+            "wbom": "string"
+          },
+          "example": {
+            "sbom": ["MaestroSDK_1.2.0", "iOS_17.3"],
+            "abom": "maestro-mobile-app",
+            "cbom": ["UAE_PDPL", "GDPR"],
+            "ibom": ["camera_permission", "location_permission"]
+          }
+        },
+        "data_lineage": {
+          "type": "array",
+          "description": "Provenance chain",
+          "items": {
+            "source": "string",
+            "transformation": "string",
+            "timestamp": "datetime"
+          },
+          "example": [
+            {"source": "iPhone_GPS", "transformation": "raw_capture", "timestamp": "2024-02-01T14:30:00Z"},
+            {"source": "semantic_engine", "transformation": "geocoding", "timestamp": "2024-02-01T14:30:02Z"},
+            {"source": "plsfsiom_graph", "transformation": "graph_insert", "timestamp": "2024-02-01T14:30:03Z"}
+          ]
+        },
+        "retention_policy": {
+          "type": "object",
+          "properties": {
+            "retention_days": "number",
+            "anonymization_days": "number",
+            "deletion_date": "datetime"
+          },
+          "example": {"retention_days": 90, "anonymization_days": 7, "deletion_date": "2024-05-01T00:00:00Z"}
+        },
+        "version": {
+          "type": "string",
+          "description": "Schema version",
+          "example": "1.0.0"
+        }
+      },
+      "privacy_tier": "critical",
+      "retention_days": 730,
+      "immutable": true
+    }
+  },
+
+  "graph_structure": {
+    "nodes": {
+      "Person": {"dimension": "P", "label_property": "user_id"},
+      "Location": {"dimension": "L", "label_property": "coordinates"},
+      "Space": {"dimension": "S", "label_property": "space_id"},
+      "Function": {"dimension": "F", "label_property": "workflow_id"},
+      "State": {"dimension": "S2", "label_property": "status"},
+      "Interaction": {"dimension": "I", "label_property": "interaction_type"},
+      "Object": {"dimension": "O", "label_property": "object_id"}
+    },
+    "edges": {
+      "AT": {"from": "Person", "to": "Location", "description": "Person is at Location"},
+      "WITHIN": {"from": "Location", "to": "Space", "description": "Location is within Space"},
+      "PERFORMING": {"from": "Person", "to": "Function", "description": "Person is performing Function"},
+      "IN_STATE": {"from": "Function", "to": "State", "description": "Function has State"},
+      "INTERACTS_WITH": {"from": "Person", "to": "Person", "description": "Person interacts with Person", "via": "Interaction"},
+      "USES": {"from": "Person", "to": "Object", "description": "Person uses Object"},
+      "LOCATED_AT": {"from": "Object", "to": "Location", "description": "Object is located at Location"}
+    }
+  },
+
+  "query_patterns": {
+    "find_person_location": {
+      "description": "Find where a person is right now",
+      "cypher": "MATCH (p:Person {user_id: $user_id})-[:AT]->(l:Location) WHERE l.timestamp > datetime() - duration({minutes: 5}) RETURN l",
+      "example_params": {"user_id": "usr_123"}
+    },
+    "find_people_in_space": {
+      "description": "Find all people currently in a space",
+      "cypher": "MATCH (p:Person)-[:AT]->(l:Location)-[:WITHIN]->(s:Space {space_id: $space_id}) WHERE l.timestamp > datetime() - duration({minutes: 5}) RETURN p, l",
+      "example_params": {"space_id": "spc_floor2_cafeteria"}
+    },
+    "find_interaction_history": {
+      "description": "Find all interactions between two people",
+      "cypher": "MATCH (p1:Person {user_id: $user1})-[:INTERACTS_WITH]->(i:Interaction)<-[:INTERACTS_WITH]-(p2:Person {user_id: $user2}) RETURN i ORDER BY i.timestamp DESC LIMIT 10",
+      "example_params": {"user1": "usr_123", "user2": "usr_456"}
+    },
+    "find_active_workflows": {
+      "description": "Find all active workflows for a person",
+      "cypher": "MATCH (p:Person {user_id: $user_id})-[:PERFORMING]->(f:Function)-[:IN_STATE]->(s:State {status: 'active'}) RETURN f, s",
+      "example_params": {"user_id": "usr_123"}
+    },
+    "predict_next_location": {
+      "description": "Predict where a person will be next based on behavioral profile",
+      "cypher": "MATCH (p:Person {user_id: $user_id})-[:AT]->(l:Location) WITH p, collect(l) AS locations RETURN ml.predict_next_location(p.behavioral_profile, locations)",
+      "example_params": {"user_id": "usr_123"}
+    }
+  },
+
+  "compliance_mappings": {
+    "UAE_PDPL": {
+      "Article_6_Lawful_Processing": {
+        "implementation": "Metadata.consent_id must be present",
+        "validation": "SELECT * FROM plsfsiom WHERE consent_id IS NULL"
+      },
+      "Article_7_Data_Minimization": {
+        "implementation": "Only collect dimensions marked as required=true",
+        "validation": "Audit log of optional data collection with justification"
+      },
+      "Article_11_Right_of_Access": {
+        "implementation": "User dashboard exports all PLSFSIOM records for user_id",
+        "api_endpoint": "/api/v1/users/{user_id}/data-export"
+      },
+      "Article_12_Right_to_Erasure": {
+        "implementation": "Cascade delete all records where P.user_id matches, within 30 days",
+        "api_endpoint": "/api/v1/users/{user_id}/delete"
+      },
+      "Article_18_Data_Localization": {
+        "implementation": "If Metadata.jurisdiction = 'UAE', data stored in UAE region",
+        "validation": "SELECT jurisdiction, COUNT(*) FROM plsfsiom GROUP BY jurisdiction"
+      }
+    },
+    "GDPR": {
+      "Article_17_Right_to_Erasure": {
+        "implementation": "Same as UAE PDPL Article 12",
+        "api_endpoint": "/api/v1/users/{user_id}/delete"
+      },
+      "Article_20_Data_Portability": {
+        "implementation": "Export in JSON, CSV, or SPDX format",
+        "api_endpoint": "/api/v1/users/{user_id}/data-export?format=json"
+      }
+    }
+  },
+
+  "bom_integration": {
+    "SBOM": {
+      "tracks": "All SDKs, frameworks, and libraries used in PLSFSIOM implementation",
+      "example": "Metadata.bom_references.sbom = ['MaestroSDK_1.2.0', 'DuckDB_0.9.2', 'PostgreSQL_16']"
+    },
+    "ABOM": {
+      "tracks": "Which Maestro apps (mobile, AR, admin) use this PLSFSIOM instance",
+      "example": "Metadata.bom_references.abom = 'maestro-mobile-app'"
+    },
+    "PBOM": {
+      "tracks": "Developer who created this PLSFSIOM record, team ownership",
+      "example": "Metadata.bom_references.pbom = 'team_platform_engineering'"
+    },
+    "HBOM": {
+      "tracks": "Device type that captured this data (iPhone, drone, AR glasses)",
+      "example": "Metadata.bom_references.hbom = ['iPhone_15_Pro', 'DJI_Mavic_3']"
+    },
+    "IBOM": {
+      "tracks": "Permissions required to capture this data",
+      "example": "Metadata.bom_references.ibom = ['camera_permission', 'location_permission']"
+    },
+    "DBOM": {
+      "tracks": "Data lineage from sensor to storage",
+      "example": "Metadata.data_lineage shows iPhone_GPS → semantic_engine → plsfsiom_graph"
+    },
+    "CBOM": {
+      "tracks": "Compliance requirements for this record",
+      "example": "Metadata.bom_references.cbom = ['UAE_PDPL_Art6', 'GDPR_Art17']"
+    },
+    "OBOM": {
+      "tracks": "Performance metrics (query time, storage size)",
+      "example": "Metadata.bom_references.obom = {query_time_ms: 45, storage_kb: 12}"
+    },
+    "WBOM": {
+      "tracks": "Workflow that generated this record",
+      "example": "Metadata.bom_references.wbom = 'morning_commute_automation'"
+    }
+  },
+
+  "api_examples": {
+    "create_record": {
+      "endpoint": "POST /api/v1/plsfsiom",
+      "request_body": {
+        "P": {"user_id": "usr_123", "roles": ["employee"]},
+        "L": {"coordinates": {"lat": 25.1972, "lon": 55.2744}, "semantic_location": "Dubai Marina"},
+        "S": {"space_id": "spc_outdoor_plaza"},
+        "F": {"function_type": "transit", "intent": "Commute to office"},
+        "S2": {"status": "in_transit", "eta": "2024-02-01T09:00:00Z"},
+        "M": {"timestamp": "2024-02-01T08:45:00Z", "jurisdiction": "UAE", "consent_id": "consent_001"}
+      },
+      "response": {
+        "id": "plsfsiom_rec_001",
+        "status": "created",
+        "graph_node_ids": ["person_123", "location_456", "space_789"]
+      }
+    },
+    "query_records": {
+      "endpoint": "GET /api/v1/plsfsiom?user_id=usr_123&time_range=last_24h",
+      "response": {
+        "records": [
+          {
+            "id": "plsfsiom_rec_001",
+            "P": {"user_id": "usr_123"},
+            "L": {"coordinates": {"lat": 25.1972, "lon": 55.2744}},
+            "M": {"timestamp": "2024-02-01T08:45:00Z"}
+          }
+        ],
+        "count": 1,
+        "pagination": {"next": null}
+      }
+    },
+    "delete_user_data": {
+      "endpoint": "DELETE /api/v1/users/usr_123/data",
+      "request_body": {
+        "confirmation": "I confirm deletion of all data for user usr_123"
+      },
+      "response": {
+        "status": "scheduled",
+        "deletion_date": "2024-03-02T00:00:00Z",
+        "records_affected": 1247
+      }
+    }
+  }
+}
